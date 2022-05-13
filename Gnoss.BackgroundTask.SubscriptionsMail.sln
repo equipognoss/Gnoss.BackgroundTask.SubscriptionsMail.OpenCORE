@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31313.79
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gnoss.BackgroundTask.SubscriptionsMail", "Gnoss.BackgroundTask.SubscriptionsMail\Gnoss.BackgroundTask.SubscriptionsMail.csproj", "{377BB9C5-C79D-4C0A-97DA-6BE2CE896A74}"
 EndProject
@@ -38,8 +38,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Es.Riam.Web.Util", "..\Gnoss.Commons\Es.Riam.Web.Util\Es.Riam.Web.Util.csproj", "{3832F2F5-38E7-41F5-AE30-39A646CF9F3F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Es.Riam.AbstractsOpen", "..\Gnoss.Commons\Es.Riam.AbstractsOpen\Es.Riam.AbstractsOpen.csproj", "{FCAACB44-C54A-4E9F-A2D7-C50E79AE1E85}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Es.Riam.EnterpriseReplication", "..\Gnoss.Commons\Es.Riam.EnterpriseReplication\Es.Riam.EnterpriseReplication.csproj", "{CBF15E19-7EC4-409A-A6BA-951C95E67443}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -119,10 +117,6 @@ Global
 		{FCAACB44-C54A-4E9F-A2D7-C50E79AE1E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCAACB44-C54A-4E9F-A2D7-C50E79AE1E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCAACB44-C54A-4E9F-A2D7-C50E79AE1E85}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CBF15E19-7EC4-409A-A6BA-951C95E67443}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBF15E19-7EC4-409A-A6BA-951C95E67443}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBF15E19-7EC4-409A-A6BA-951C95E67443}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBF15E19-7EC4-409A-A6BA-951C95E67443}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
