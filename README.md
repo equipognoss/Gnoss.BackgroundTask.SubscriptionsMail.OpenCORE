@@ -2,6 +2,8 @@
 
 # Gnoss.BackgroundTask.SubscriptionsMail.OpenCORE
 
+![](https://github.com/equipognoss/Gnoss.BackgroundTask.SubscriptionsMail.OpenCORE/workflows/BuildSubscriptionsMail/badge.svg)
+
 Aplicación de segundo plano que se encarga de generar los boletines de suscripciones de los usuarios que tienen alguna suscripción activa. Una vez generado el boletín de un usuario, registra su envío en la cola del servicio Gnoss Mail Service para que lo envíe. 
 
 Configuración estandar de esta aplicación en el archivo docker-compose.yml: 
