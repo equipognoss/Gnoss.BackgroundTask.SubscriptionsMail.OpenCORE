@@ -10,7 +10,7 @@ Configuración estandar de esta aplicación en el archivo docker-compose.yml:
 
 ```yml
 subscriptionsmail:
-    image: gnoss/subscriptionsmail
+    image: gnoss/gnoss.backgroundtask.subscriptionsmail.opencore
     env_file: .env
     environment:
      virtuosoConnectionString: ${virtuosoConnectionString}
