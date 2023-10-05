@@ -37,6 +37,7 @@ using Es.Riam.Gnoss.AD.EntityModelBASE;
 using Es.Riam.Gnoss.AD.Virtuoso;
 using Es.Riam.Gnoss.CL;
 using Es.Riam.AbstractsOpen;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ServicioNotificaciones
 {
@@ -110,6 +111,8 @@ namespace ServicioNotificaciones
             {
                 try
                 {
+                    ComprobarTraza("SubscriptionsMail", entityContext, loggingService, redisCacheWrapper, mConfigService, servicesUtilVirtuosoAndReplication);
+
                     ComprobarCancelacionHilo();
 
                     #region Notificaciones de Suscripciones
@@ -154,6 +157,7 @@ namespace ServicioNotificaciones
                 }
                 finally
                 {
+                    GuardarTraza(loggingService);
                     //Duermo el proceso el tiempo establecido
                     GC.Collect();
                     Thread.Sleep(Controller.INTERVALO_SEGUNDOS * 1000);
