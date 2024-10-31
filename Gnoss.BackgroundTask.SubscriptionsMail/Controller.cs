@@ -285,7 +285,7 @@ namespace ServicioNotificaciones
         {
             try
             {
-                UtilIdiomas utilIdiomas = new UtilIdiomas(pIdentidad.Persona.FilaPersona.Idioma, pIdentidad.Clave, loggingService, entityContext, mConfigService);
+                UtilIdiomas utilIdiomas = new UtilIdiomas(pIdentidad.Persona.FilaPersona.Idioma, pIdentidad.Clave, loggingService, entityContext, mConfigService, redisCacheWrapper);
 
                 //comprobar si una SUSCRIPCIÓN tiene boletin generado a partir de una fecha
                 SuscripcionCN suscripcionCN = new SuscripcionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
@@ -529,7 +529,7 @@ namespace ServicioNotificaciones
                     string urlPropiaComunidad = proyCN.ObtenerURLPropiaProyectoPorNombreCorto(proy.NombreCorto);
                     proyCN.Dispose();
 
-                    GnossUrlsSemanticas gnossUrlsSemanticas = new GnossUrlsSemanticas(loggingService, entityContext, mConfigService);
+                    GnossUrlsSemanticas gnossUrlsSemanticas = new GnossUrlsSemanticas(loggingService, entityContext, mConfigService, mServicesUtilVirtuosoAndReplication);
                     string urlDocumento = gnossUrlsSemanticas.GetURLBaseRecursosFicha(urlBase, pUtilIdiomas, proy.NombreCorto, UrlPerfil, doc, false);
 
                     //Titulo del resultado
