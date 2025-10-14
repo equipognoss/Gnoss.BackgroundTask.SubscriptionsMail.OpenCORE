@@ -38,6 +38,9 @@ using Es.Riam.Gnoss.AD.Virtuoso;
 using Es.Riam.Gnoss.CL;
 using Es.Riam.AbstractsOpen;
 using Microsoft.AspNetCore.Mvc;
+using Es.Riam.Interfaces.InterfacesOpen;
+using Microsoft.Extensions.Logging;
+using Es.Riam.Gnoss.Logica.Live;
 
 namespace ServicioNotificaciones
 {
@@ -47,21 +50,25 @@ namespace ServicioNotificaciones
 
         private List<Guid> mListaPerfiles;
         private List<Guid> mListaIdRecursosListados = new List<Guid>();
+        private ILogger mlogger;
+        private ILoggerFactory mLoggerFactory;
 
         #endregion
 
         #region Constructores
 
-        public Controller(IServiceScopeFactory serviceScopeFactory, ConfigService configService)
-            : base(serviceScopeFactory, configService)
+        public Controller(IServiceScopeFactory serviceScopeFactory, ConfigService configService, ILogger<Controller> logger, ILoggerFactory loggerFactory)
+            : base(serviceScopeFactory, configService,logger,loggerFactory)
         {
+            mlogger = logger;
+            mLoggerFactory = loggerFactory;
         }
 
         #endregion
 
         protected override ControladorServicioGnoss ClonarControlador()
         {
-            return new Controller(ScopedFactory, mConfigService);
+            return new Controller(ScopedFactory, mConfigService, mLoggerFactory.CreateLogger<Controller>(), mLoggerFactory);
         }
 
         #region Metodos publicos
@@ -74,7 +81,7 @@ namespace ServicioNotificaciones
             {
                 try
                 {
-                    ParametroAplicacionCN parametroApliCN = new ParametroAplicacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+                    ParametroAplicacionCN parametroApliCN = new ParametroAplicacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ParametroAplicacionCN>(), mLoggerFactory);
                     ParametroAplicacionGBD gestorParamatroAppController = new ParametroAplicacionGBD(loggingService, entityContext, mConfigService);
                     GestorParametroAplicacion gestorParametroAplicacion = new GestorParametroAplicacion();
                     gestorParamatroAppController.ObtenerConfiguracionGnoss(gestorParametroAplicacion);
@@ -92,7 +99,7 @@ namespace ServicioNotificaciones
                 }
                 catch (Exception ex)
                 {
-                    loggingService.GuardarLog(loggingService.DevolverCadenaError(ex, "1.0"));
+                    loggingService.GuardarLog(loggingService.DevolverCadenaError(ex, "1.0"),mlogger);
                     Thread.Sleep(1000);
                 }
             }
@@ -120,7 +127,7 @@ namespace ServicioNotificaciones
                     //(Re)Carga los datos de la BD referentes a suscripciones
                     this.CargarPerfilesConSuscripcion(loggingService, entityContext, servicesUtilVirtuosoAndReplication);
                     //Escribe entrada en Log
-                    loggingService.GuardarLog(LogStatus.Correcto.ToString().ToUpper() + " (" + this.NombreBD + ") " + this.CrearEntradaRegistro(LogStatus.Correcto, mListaPerfiles.Count.ToString() + " Perfiles con suscripciones"));
+                    loggingService.GuardarLog(LogStatus.Correcto.ToString().ToUpper() + " (" + this.NombreBD + ") " + this.CrearEntradaRegistro(LogStatus.Correcto, mListaPerfiles.Count.ToString() + " Perfiles con suscripciones"),mlogger);
 
                     LogStatus estadoProcesoNotificacion = LogStatus.Error;
                     string entradaLog = string.Empty;
@@ -142,7 +149,7 @@ namespace ServicioNotificaciones
                             break;
                     }
                     //Escribe entrada en Log
-                    loggingService.GuardarLog(entradaLog);
+                    loggingService.GuardarLog(entradaLog, mlogger);
 
                     #endregion
 
@@ -153,7 +160,7 @@ namespace ServicioNotificaciones
                 }
                 catch (Exception ex)
                 {
-                    loggingService.GuardarLog(LogStatus.Error.ToString().ToUpper() + " (" + this.NombreBD + ") " + this.CrearEntradaRegistro(LogStatus.Error, ex.Message));
+                    loggingService.GuardarLog(LogStatus.Error.ToString().ToUpper() + " (" + this.NombreBD + ") " + this.CrearEntradaRegistro(LogStatus.Error, ex.Message), mlogger);
                 }
                 finally
                 {
@@ -181,11 +188,11 @@ namespace ServicioNotificaciones
             {
                 return LogStatus.NoGenerado;
             }
-            IdentidadCN identCN = new IdentidadCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
-            PersonaCN persCN = new PersonaCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
-            OrganizacionCN orgCN = new OrganizacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+            IdentidadCN identCN = new IdentidadCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<IdentidadCN>(), mLoggerFactory);
+            PersonaCN persCN = new PersonaCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<PersonaCN>(), mLoggerFactory);
+            OrganizacionCN orgCN = new OrganizacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<OrganizacionCN>(), mLoggerFactory);
 
-            ParametroCN paramCN = new ParametroCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+            ParametroCN paramCN = new ParametroCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ParametroCN>(), mLoggerFactory);
             List<Guid> listaProyectosConNotificacionesActivas = paramCN.ObtenerListaProyectosConNotificacionesDeSuscripciones();
             paramCN.Dispose();
 
@@ -197,7 +204,7 @@ namespace ServicioNotificaciones
 
                     GestionOrganizaciones gestOrg = new GestionOrganizaciones(orgCN.ObtenerOrganizacionPorPerfil(perfilID), loggingService, entityContext);
 
-                    SuscripcionCN suscCN = new SuscripcionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+                    SuscripcionCN suscCN = new SuscripcionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<SuscripcionCN>(), mLoggerFactory);
                     DataWrapperSuscripcion suscDW = suscCN.ObtenerSuscripcionesDePerfil(perfilID, false);
 
                     GestionSuscripcion GestorSuscripciones = new GestionSuscripcion(suscDW, loggingService, entityContext);
@@ -269,7 +276,7 @@ namespace ServicioNotificaciones
                 catch (Exception ex)
                 {
                     estadoProceso = LogStatus.Error;
-                    loggingService.GuardarLog("\r\n\tError al generar el boletín para el perfil '" + perfilID.ToString() + "'.\r\n\tError:" + ex.Message + "\r\n\tTraza:" + ex.StackTrace);
+                    loggingService.GuardarLog("\r\n\tError al generar el boletín para el perfil '" + perfilID.ToString() + "'.\r\n\tError:" + ex.Message + "\r\n\tTraza:" + ex.StackTrace, mlogger);
 
                     continue;
                 }
@@ -285,10 +292,10 @@ namespace ServicioNotificaciones
         {
             try
             {
-                UtilIdiomas utilIdiomas = new UtilIdiomas(pIdentidad.Persona.FilaPersona.Idioma, pIdentidad.Clave, loggingService, entityContext, mConfigService, redisCacheWrapper);
+                UtilIdiomas utilIdiomas = new UtilIdiomas(pIdentidad.Persona.FilaPersona.Idioma, pIdentidad.Clave, loggingService, entityContext, mConfigService, redisCacheWrapper, mLoggerFactory.CreateLogger<UtilIdiomas>(), mLoggerFactory);
 
                 //comprobar si una SUSCRIPCIÓN tiene boletin generado a partir de una fecha
-                SuscripcionCN suscripcionCN = new SuscripcionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+                SuscripcionCN suscripcionCN = new SuscripcionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<SuscripcionCN>(), mLoggerFactory);
                 bool tieneBoletinGenerado = suscripcionCN.TienePerfilBoletinPosteriorAFecha(pSuscripcion.Clave, pFecha);
 
                 if (tieneBoletinGenerado)
@@ -301,7 +308,7 @@ namespace ServicioNotificaciones
 
                 suscripcionCN.Dispose();
 
-                LiveUsuariosCL liveUsuariosCL = new LiveUsuariosCL(entityContext, loggingService, redisCacheWrapper, mConfigService, servicesUtilVirtuosoAndReplication);
+                LiveUsuariosCL liveUsuariosCL = new LiveUsuariosCL(entityContext, loggingService, redisCacheWrapper, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<LiveUsuariosCL>(), mLoggerFactory);
                 liveUsuariosCL.Dominio = mDominio;
 
                 List<object> listaResultadosLive = new List<object>();
@@ -322,24 +329,28 @@ namespace ServicioNotificaciones
                     //TODO Javier ¿se ha borrado en .net 5?
                     //new ActualizarConjuntoCN().GuardarDatosSuscripcion(pSuscripcion.GestorSuscripcion.SuscripcionDW, null);
 
-                    GestionNotificaciones gestorNot = new GestionNotificaciones(new DataWrapperNotificacion(), loggingService, entityContext, mConfigService, servicesUtilVirtuosoAndReplication);
+                    GestionNotificaciones gestorNot = new GestionNotificaciones(new DataWrapperNotificacion(), loggingService, entityContext, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<GestionNotificaciones>(), mLoggerFactory);
                     Guid proyectoID = ((Es.Riam.Gnoss.AD.EntityModel.Models.Suscripcion.SuscripcionTesauroProyecto)pSuscripcion.FilaRelacion).ProyectoID;
 
-                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication);
+                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
                     string nombreCorto = proyectoCL.ObtenerNombreCortoProyecto(proyectoID);
 
                     gestorNot.AgregarNotificacionBoletinSuscripcion(pIdentidad.Persona.Clave, pIdentidad.OrganizacionID, resultados, pIdentidad.Persona.NombreConApellidos, pIdentidad.Email, null, pIdentidad.FilaIdentidad.ProyectoID, nombreCorto, pIdentidad.Persona.FilaPersona.Idioma);
 
-                    NotificacionCN notCN = new NotificacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
-                    notCN.ActualizarNotificacion();
-                    notCN.Dispose();
+                    using (var scope = ScopedFactory.CreateScope())
+                    {
+                        IAvailableServices availableServices = scope.ServiceProvider.GetRequiredService<IAvailableServices>();
+						NotificacionCN notCN = new NotificacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<NotificacionCN>(), mLoggerFactory);
+						notCN.ActualizarNotificacion(availableServices);
+						notCN.Dispose();
+					}
 
                     return LogStatus.Correcto;
                 }
             }
             catch (Exception ex)
             {
-                loggingService.GuardarLog("\r\n\tError al generar el boletín para la identidad '" + pIdentidad.Clave.ToString() + "'.\r\n\tError:" + ex.Message + "\r\n\tTraza:" + ex.StackTrace);
+                loggingService.GuardarLog("\r\n\tError al generar el boletín para la identidad '" + pIdentidad.Clave.ToString() + "'.\r\n\tError:" + ex.Message + "\r\n\tTraza:" + ex.StackTrace, mlogger);
 
                 return LogStatus.Error;
             }
@@ -429,7 +440,7 @@ namespace ServicioNotificaciones
                 {
                     NumeroIntentosCarga++;
 
-                    IdentidadCN identCN = new IdentidadCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+                    IdentidadCN identCN = new IdentidadCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<IdentidadCN>(), mLoggerFactory);
 
                     if (cargarPerfilesTodosProyesctos)
                     {
@@ -452,7 +463,7 @@ namespace ServicioNotificaciones
                 catch (Exception)
                 {
                     int intentosRestantes = 5 - NumeroIntentosCarga;
-                    loggingService.GuardarLog("Se han producido errores al intentar cargar datos. Puede producirse si el servidor sql server está inactivo.\r\n\t Se volverá a intentar pasados 1:30 minutos.(QUEDAN " + intentosRestantes.ToString() + " INTENTOS)");
+                    loggingService.GuardarLog("Se han producido errores al intentar cargar datos. Puede producirse si el servidor sql server está inactivo.\r\n\t Se volverá a intentar pasados 1:30 minutos.(QUEDAN " + intentosRestantes.ToString() + " INTENTOS)", mlogger);
 
                     Thread.Sleep(90000);
                 }
@@ -484,7 +495,7 @@ namespace ServicioNotificaciones
             }
 
             string UrlIntraGnoss = "";
-            ParametroAplicacionCN aplicacionCN = new ParametroAplicacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
+            ParametroAplicacionCN aplicacionCN = new ParametroAplicacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ParametroAplicacionCN>(), mLoggerFactory);
             UrlIntraGnoss = aplicacionCN.ObtenerUrl();
             aplicacionCN.Dispose();
             bool incluirSeparador = false;
@@ -505,13 +516,13 @@ namespace ServicioNotificaciones
 
                 if (tipo == (short)TipoLive.Recurso || tipo == (short)TipoLive.Debate || tipo == (short)TipoLive.Pregunta)
                 {
-                    DocumentacionCN docCN = new DocumentacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
-                    GestorDocumental gestDoc = new GestorDocumental(docCN.ObtenerDocumentoPorID(elementoID), loggingService, entityContext);
+                    DocumentacionCN docCN = new DocumentacionCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<DocumentacionCN>(), mLoggerFactory);
+                    GestorDocumental gestDoc = new GestorDocumental(docCN.ObtenerDocumentoPorID(elementoID), loggingService, entityContext, mLoggerFactory.CreateLogger<GestorDocumental>(), mLoggerFactory);
                     docCN.Dispose();
                     Documento doc = gestDoc.ListaDocumentos[elementoID];
 
-                    ProyectoCN proyCN = new ProyectoCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication);
-                    GestionProyecto gestProy = new GestionProyecto(proyCN.ObtenerProyectoCargaLigeraPorID(proyID), loggingService, entityContext);
+                    ProyectoCN proyCN = new ProyectoCN(entityContext, loggingService, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCN>(), mLoggerFactory);
+                    GestionProyecto gestProy = new GestionProyecto(proyCN.ObtenerProyectoCargaLigeraPorID(proyID), loggingService, entityContext, mLoggerFactory.CreateLogger<GestionProyecto>(), mLoggerFactory);
 
                     Proyecto proy = gestProy.ListaProyectos[proyID];
 
@@ -529,13 +540,13 @@ namespace ServicioNotificaciones
                     string urlPropiaComunidad = proyCN.ObtenerURLPropiaProyectoPorNombreCorto(proy.NombreCorto);
                     proyCN.Dispose();
 
-                    GnossUrlsSemanticas gnossUrlsSemanticas = new GnossUrlsSemanticas(loggingService, entityContext, mConfigService, mServicesUtilVirtuosoAndReplication);
+                    GnossUrlsSemanticas gnossUrlsSemanticas = new GnossUrlsSemanticas(loggingService, entityContext, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<GnossUrlsSemanticas>(), mLoggerFactory);
                     string urlDocumento = gnossUrlsSemanticas.GetURLBaseRecursosFicha(urlBase, pUtilIdiomas, proy.NombreCorto, UrlPerfil, doc, false);
 
                     //Titulo del resultado
                     mensaje += "<span style=\"color: rgb(82, 132, 173); font-weight: bold; font-size: 15px; margin-top: 4px;\"><a style=\"color: rgb(82, 132, 173); text-decoration: none;\" href=\"" + urlDocumento + "\">" + doc.Titulo + "</a></span><br>";
 
-                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication);
+                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
                     Dictionary<string, string> parametroProyecto = proyectoCL.ObtenerParametrosProyecto(proyID);
                     proyectoCL.Dispose();
 

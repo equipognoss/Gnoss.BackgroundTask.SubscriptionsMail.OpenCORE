@@ -1,3 +1,4 @@
+using Es.Riam.Gnoss.Elementos.Suscripcion;
 using Es.Riam.Gnoss.Servicios;
 using Es.Riam.Gnoss.Util.Configuracion;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,20 +15,22 @@ namespace Gnoss.BackgroundTask.SubscriptionsMail
 {
     public class SubscriptionsMailWorker : Worker
     {
-        private readonly ILogger<SubscriptionsMailWorker> _logger;
         private readonly ConfigService _configService;
+        private ILogger mlogger;
+        private ILoggerFactory mLoggerFactory;
 
-        public SubscriptionsMailWorker(ILogger<SubscriptionsMailWorker> logger, ConfigService configService, IServiceScopeFactory scopeFactory) 
+        public SubscriptionsMailWorker(ConfigService configService, IServiceScopeFactory scopeFactory, ILogger<SubscriptionsMailWorker> logger, ILoggerFactory loggerFactory) 
             : base(logger, scopeFactory)
         {
-            _logger = logger;
             _configService = configService;
+            mlogger = logger;
+            mLoggerFactory = loggerFactory;
         }
 
         protected override List<ControladorServicioGnoss> ObtenerControladores()
         {
             List<ControladorServicioGnoss> controladores = new List<ControladorServicioGnoss>();
-            controladores.Add(new Controller(ScopedFactory, _configService));
+            controladores.Add(new Controller(ScopedFactory, _configService, mLoggerFactory.CreateLogger<Controller>(), mLoggerFactory));
             return controladores;
         }
     }
