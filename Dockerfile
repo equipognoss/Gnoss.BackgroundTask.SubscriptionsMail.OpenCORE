@@ -9,13 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl
 
 WORKDIR /app
 
-COPY Gnoss.BackgroundTask.SubscriptionsMail/*.csproj ./
-
-RUN dotnet restore
-
 COPY . ./
 
-RUN dotnet publish Gnoss.BackgroundTask.SubscriptionsMail/Gnoss.BackgroundTask.SubscriptionsMail.csproj -c Release -o out
+RUN dotnet restore Gnoss.BackgroundTask.SubscriptionsMail.OpenCORE/Gnoss.BackgroundTask.SubscriptionsMail/Gnoss.BackgroundTask.SubscriptionsMail.csproj
+
+RUN dotnet publish Gnoss.BackgroundTask.SubscriptionsMail.OpenCORE/Gnoss.BackgroundTask.SubscriptionsMail/Gnoss.BackgroundTask.SubscriptionsMail.csproj -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
