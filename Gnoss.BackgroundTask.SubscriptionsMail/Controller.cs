@@ -110,7 +110,7 @@ namespace ServicioNotificaciones
         /// </summary>
         /// <param name="attemp"></param>
         /// <returns>Estado de la operacion realizada</returns>
-        public override void RealizarMantenimiento(EntityContext entityContext, EntityContextBASE entityContextBASE, UtilidadesVirtuoso utilidadesVirtuoso, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, VirtuosoAD virtuosoAD, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
+        public override void RealizarMantenimiento(EntityContext entityContext, EntityContextBASE entityContextBASE, UtilidadesVirtuoso utilidadesVirtuoso, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, GnossCache gnossCache, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
         {
             EstablecerDominioCache(entityContext, loggingService, servicesUtilVirtuosoAndReplication);
 
@@ -134,7 +134,7 @@ namespace ServicioNotificaciones
 
                     //Envio y Log Notificaciones
                     mListaIdRecursosListados.Clear();
-                    estadoProcesoNotificacion = this.GenerarNotificacionesDeSuscripciones(entityContext, loggingService, redisCacheWrapper, virtuosoAD, servicesUtilVirtuosoAndReplication);
+                    estadoProcesoNotificacion = this.GenerarNotificacionesDeSuscripciones(entityContext, loggingService, redisCacheWrapper, servicesUtilVirtuosoAndReplication);
 
                     switch (estadoProcesoNotificacion)
                     {
@@ -180,7 +180,7 @@ namespace ServicioNotificaciones
         /// Genera las notificaciones
         /// </summary>
         /// <returns>Estado del resultado de la operacion de la generación de las notificaciones</returns>
-        private LogStatus GenerarNotificacionesDeSuscripciones(EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, VirtuosoAD virtuosoAD, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
+        private LogStatus GenerarNotificacionesDeSuscripciones(EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
         {
             LogStatus estadoProceso = LogStatus.NoGenerado;
 
@@ -264,7 +264,7 @@ namespace ServicioNotificaciones
 
                             if (identidad != null)
                             {
-                                LogStatus estadoProcesoBoletin = GenerarBoletinIdentidad(identidad, susc, fecha, entityContext, loggingService, redisCacheWrapper, virtuosoAD, servicesUtilVirtuosoAndReplication);
+                                LogStatus estadoProcesoBoletin = GenerarBoletinIdentidad(identidad, susc, fecha, entityContext, loggingService, redisCacheWrapper, servicesUtilVirtuosoAndReplication);
                                 if (estadoProcesoBoletin == LogStatus.Error)
                                 {
                                     estadoProceso = LogStatus.Error;
@@ -288,7 +288,7 @@ namespace ServicioNotificaciones
             return estadoProceso;
         }
 
-        private LogStatus GenerarBoletinIdentidad(Identidad pIdentidad, Suscripcion pSuscripcion, DateTime pFecha, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, VirtuosoAD virtuosoAD, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
+        private LogStatus GenerarBoletinIdentidad(Identidad pIdentidad, Suscripcion pSuscripcion, DateTime pFecha, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
         {
             try
             {
@@ -318,7 +318,7 @@ namespace ServicioNotificaciones
                 int score = liveUsuariosCL.ObtenerLiveProyectoUsuarioSuscripcionesPorScore(pIdentidad.Persona.UsuarioID, ((Es.Riam.Gnoss.AD.EntityModel.Models.Suscripcion.SuscripcionTesauroProyecto)pSuscripcion.FilaRelacion).ProyectoID, pIdentidad.Persona.FilaPersona.Idioma, ultimoScore, 100, listaResultadosLive);
 
                 //Enviamos las ultimas suscripciones obtenidas
-                string resultados = MontarResultadosSuscr(listaResultadosLive, utilIdiomas, pIdentidad, entityContext, loggingService, redisCacheWrapper, virtuosoAD, servicesUtilVirtuosoAndReplication);
+                string resultados = MontarResultadosSuscr(listaResultadosLive, utilIdiomas, pIdentidad, entityContext, loggingService, redisCacheWrapper, servicesUtilVirtuosoAndReplication);
 
                 if (!string.IsNullOrEmpty(resultados))
                 {
@@ -332,7 +332,7 @@ namespace ServicioNotificaciones
                     GestionNotificaciones gestorNot = new GestionNotificaciones(new DataWrapperNotificacion(), loggingService, entityContext, mConfigService, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<GestionNotificaciones>(), mLoggerFactory);
                     Guid proyectoID = ((Es.Riam.Gnoss.AD.EntityModel.Models.Suscripcion.SuscripcionTesauroProyecto)pSuscripcion.FilaRelacion).ProyectoID;
 
-                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
+                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
                     string nombreCorto = proyectoCL.ObtenerNombreCortoProyecto(proyectoID);
 
                     gestorNot.AgregarNotificacionBoletinSuscripcion(pIdentidad.Persona.Clave, pIdentidad.OrganizacionID, resultados, pIdentidad.Persona.NombreConApellidos, pIdentidad.Email, null, pIdentidad.FilaIdentidad.ProyectoID, nombreCorto, pIdentidad.Persona.FilaPersona.Idioma);
@@ -479,7 +479,7 @@ namespace ServicioNotificaciones
         /// <param name="pUtilIdiomas"></param>
         /// <param name="pIdentidadSuscripcion"></param>
         /// <returns></returns>
-        private string MontarResultadosSuscr(List<object> pListaSuscripciones, UtilIdiomas pUtilIdiomas, Identidad pIdentidadSuscripcion, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, VirtuosoAD virtuosoAD, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
+        private string MontarResultadosSuscr(List<object> pListaSuscripciones, UtilIdiomas pUtilIdiomas, Identidad pIdentidadSuscripcion, EntityContext entityContext, LoggingService loggingService, RedisCacheWrapper redisCacheWrapper, IServicesUtilVirtuosoAndReplication servicesUtilVirtuosoAndReplication)
         {
             string UrlPerfil = "/";
 
@@ -546,7 +546,7 @@ namespace ServicioNotificaciones
                     //Titulo del resultado
                     mensaje += "<span style=\"color: rgb(82, 132, 173); font-weight: bold; font-size: 15px; margin-top: 4px;\"><a style=\"color: rgb(82, 132, 173); text-decoration: none;\" href=\"" + urlDocumento + "\">" + doc.Titulo + "</a></span><br>";
 
-                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, virtuosoAD, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
+                    ProyectoCL proyectoCL = new ProyectoCL(entityContext, loggingService, redisCacheWrapper, mConfigService, null, servicesUtilVirtuosoAndReplication, mLoggerFactory.CreateLogger<ProyectoCL>(), mLoggerFactory);
                     Dictionary<string, string> parametroProyecto = proyectoCL.ObtenerParametrosProyecto(proyID);
                     proyectoCL.Dispose();
 
